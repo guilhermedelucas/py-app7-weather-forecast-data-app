@@ -9,18 +9,30 @@ days = st.slider('Forecast days:', min_value=1, max_value=5,
 option = st.selectbox('Select data to view:',
                       ('Temperature', 'Sky'))
 
-st.subheader(f'{option} for the next {days} in {place}')
+if place:
+    st.subheader(f'{option} for the next {days} in {place}')
+    data = get_data(place=place, forecast_days=days)
 
+    if option == 'Temperature':
+        # Create a temperature plot
+        temperatures = [i['main']['temp'] / 10 for i in data]
+        dates = [i['dt_txt'] for i in data]
+        # Create a temperature plot
+        figure = px.line(x=dates, y=temperatures, labels={"x": "Date", "y": "Temperature"})
+        st.plotly_chart(figure)
 
-# def get_data(days_local):
-#     days_local = ["2022-25-10", "2022-26-10", "2022-27-10"]
-#     temperatures_local = [10, 11, 15]
-#     temperatures_local = [days * i for i in temperatures_local]
-#     return days_local, temperatures_local
+    if option == 'Sky':
+        sky_conditions = [i['weather'][0]['main'] for i in data]
 
+        images = {
+            'Clear': 'images/clear.png',
+            'Clouds': 'images/cloud.png',
+            'Rain': 'images/rain.png',
+            'Snow': 'images/snow.png',
+        }
 
-d, t = get_data(place=place, forecast_days=days, type=option)
-
-
-figure = px.line(x=d, y=t, labels={ "x": "Date", "y": "Temperature" })
-st.plotly_chart(figure)
+        image_paths = [images[conditions] for conditions in sky_conditions]
+        dates = [i['dt_txt'] for i in data]
+        print(dates)
+        # Render sky images
+        st.image(image_paths, caption=dates, width=115)
